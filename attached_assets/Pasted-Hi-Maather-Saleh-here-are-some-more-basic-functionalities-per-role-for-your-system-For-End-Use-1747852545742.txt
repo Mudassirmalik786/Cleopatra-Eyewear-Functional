@@ -1,0 +1,67 @@
+Hi Maather Saleh, here are some more basic functionalities per role for your system:
+ 
+ 
+For End-Users (Customers):
+1. User Registration and Login
+	•	Create a secure account with email and password.
+	•	Option to log in using social media (e.g., Google, Facebook).
+2. Profile Management
+	•	Update personal details (name, contact info).
+	•	Change or reset password.
+3. Product Browsing
+	•	View eyewear catalog by category, brand, price, and style.
+	•	Use filters and search bar for quick access to items.
+4. Booking System
+	•	Book the mobile caravan for a specific date, time, and location.
+	•	View booking history and upcoming reservations.
+5. Payment System
+	•	Make secure payments via credit/debit cards, e-wallets.
+	•	View and download payment receipts.
+6. Notifications and Confirmations
+	•	Receive booking confirmations, event reminders, and promotions via email/SMS.
+7. Customer Support
+	•	Access FAQs and help center.
+	•	Submit support tickets or chat with a bot for quick help.
+
+ 
+For Administrators:
+1. Admin Login
+	•	Secure login with role-based access control.
+2. User Account Management
+	•	Create, edit, disable or delete user and staff accounts.
+	•	Assign roles (admin, staff, viewer).
+3. Product Catalog Management
+	•	Add, update, or remove eyewear products.
+	•	Manage product details: images, prices, descriptions, categories.
+4. Booking Management
+	•	View, confirm, modify, or cancel bookings made by customers.
+	•	Assign staff or schedule caravan availability.
+5. Inventory Management
+	•	Monitor stock levels.
+	•	Set alerts for low inventory.
+6. Reporting and Analytics
+	•	Generate sales, booking, and traffic reports.
+	•	Export reports to Excel/PDF.
+7. Content and Promotion Management
+	•	Post updates or promotions on the website.
+	•	Schedule promotional banners or featured products.
+8. System Logs
+	•	Track user actions and system changes for audit purposes.
+
+
+For Employees (Staff):
+1. Staff Login
+	•	Access staff-specific dashboard with limited permissions.
+2. View Assigned Bookings
+	•	See list of assigned caravan schedules, events, or customer appointments.
+3. Update Booking Status
+	•	Mark bookings as confirmed, completed, or canceled.
+4. Customer Interaction
+	•	Access customer details for scheduled events.
+	•	Provide virtual consultations or in-person support during events.
+5. Product Handling
+	•	Update product availability or status during events.
+	•	Note inventory usage and notify administrator if restocking is needed.
+6. Feedback Collection
+	•	Record customer feedback during or after the service.
+	•	Submit reports or incident notes to the admin.
