@@ -70,23 +70,17 @@ export function Header() {
                   </Link>
                 </Button>
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-md shadow-lg py-1 hidden group-hover:block">
-                  <Link href="/profile">
-                    <a className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">
-                      Profile
-                    </a>
+                  <Link href="/profile" className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                    Profile
                   </Link>
                   {user.role === "admin" && (
-                    <Link href="/admin/dashboard">
-                      <a className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">
-                        Admin Dashboard
-                      </a>
+                    <Link href="/admin/dashboard" className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                      Admin Dashboard
                     </Link>
                   )}
                   {user.role === "staff" && (
-                    <Link href="/staff/dashboard">
-                      <a className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">
-                        Staff Dashboard
-                      </a>
+                    <Link href="/staff/dashboard" className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">
+                      Staff Dashboard
                     </Link>
                   )}
                   <button
