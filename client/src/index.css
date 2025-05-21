@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Purple theme with HSL color values */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  
+  --primary: 262 83% 58%; /* Purple main color */
+  --primary-foreground: 0 0% 98%;
+  
+  --primary-light: 262 83% 65%; /* Lighter purple */
+  --primary-dark: 262 83% 45%; /* Darker purple */
+  
+  --secondary: 180 59% 43%; /* Teal secondary */
+  --secondary-foreground: 0 0% 98%;
+  
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 262 83% 58%;
+  
+  --radius: 0.5rem;
+  
+  /* Chart colors for admin dashboard */
+  --chart-1: 262 83% 58%;
+  --chart-2: 180 59% 43%;
+  --chart-3: 43 96% 56%;
+  --chart-4: 155 54% 50%;
+  --chart-5: 326 73% 62%;
+  
+  /* Sidebar specifics */
+  --sidebar-background: 240 10% 3.9%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-primary: 262 83% 58%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 264 96% 87%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 240 4.9% 83.9%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  
+  --primary: 262 83% 58%;
+  --primary-foreground: 0 0% 98%;
+  
+  --primary-light: 262 83% 65%;
+  --primary-dark: 262 83% 45%;
+  
+  --secondary: 180 59% 43%;
+  --secondary-foreground: 0 0% 98%;
+  
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 262 83% 58%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply poppins;
+  }
+}
+
+/* Custom classes */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.loader {
+  border-top-color: hsl(var(--primary));
+  animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+  to {transform: rotate(360deg);}
+}
+
+@layer utilities {
+  .poppins {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .open-sans {
+    font-family: 'Open Sans', sans-serif;
+  }
+}
