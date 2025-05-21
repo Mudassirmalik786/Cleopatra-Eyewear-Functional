@@ -1,583 +1,378 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Booking, Feedback } from "@shared/schema";
-import { statusColors } from "@/lib/constants";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { Booking, User } from "@shared/schema";
+import { statusColors, timeSlots } from "@/lib/constants";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+// Components
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Icons } from "@/components/ui/icons";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/auth-context";
+
+// Icons
+import { CalendarIcon, Search, UserCircle, MapPin, Clock, CheckCircle, XCircle } from "lucide-react";
 
 export default function StaffBookings() {
-  const [, setLocation] = useLocation();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterDate, setFilterDate] = useState<Date | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [showViewDialog, setShowViewDialog] = useState(false);
-  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
-  const [dateFilter, setDateFilter] = useState<string | undefined>(undefined);
-  
-  // Form state for updating
-  const [status, setStatus] = useState("");
-  const [notes, setNotes] = useState("");
-  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
-  const [feedbackRating, setFeedbackRating] = useState(5);
-  const [feedbackComment, setFeedbackComment] = useState("");
-  
-  // Parse URL query parameter for booking ID
-  const { search } = window.location;
-  const params = new URLSearchParams(search);
-  const bookingIdParam = params.get("id");
-  
-  // Redirect if not staff
-  useEffect(() => {
-    if (!authLoading && (!user || (user.role !== "staff" && user.role !== "admin"))) {
-      setLocation("/");
-      toast({
-        variant: "destructive",
-        title: "Access denied",
-        description: "You don't have permission to access this page.",
-      });
-    }
-  }, [user, authLoading, setLocation, toast]);
-  
-  // Fetch bookings
-  const { data: bookings, isLoading: bookingsLoading } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings"],
-    enabled: !!user && (user.role === "staff" || user.role === "admin"),
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [updateNotes, setUpdateNotes] = useState("");
+  const [updateStatus, setUpdateStatus] = useState("");
+
+  // Get staff bookings
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ["staff-bookings"],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const res = await fetch(`/api/staff/bookings?staffId=${user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch bookings");
+      return res.json();
+    },
+    enabled: !!user?.id,
   });
-  
-  // Fetch feedback
-  const { data: feedbackItems, isLoading: feedbackLoading } = useQuery<Feedback[]>({
-    queryKey: ["/api/feedback"],
-    enabled: !!user && (user.role === "staff" || user.role === "admin"),
+
+  // Get all users for reference
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const res = await fetch("/api/users");
+      if (!res.ok) throw new Error("Failed to fetch users");
+      return res.json();
+    },
   });
-  
-  // Filter bookings for this staff member
-  const staffBookings = bookings?.filter(booking => 
-    booking.staffId === user?.id || 
-    user?.role === "admin" // Admin can see all bookings
-  ) || [];
-  
-  // Effect to select booking from URL parameter
-  useEffect(() => {
-    if (bookingIdParam && bookings) {
-      const booking = bookings.find(b => b.id.toString() === bookingIdParam);
-      if (booking) {
-        setSelectedBooking(booking);
-        setShowViewDialog(true);
-      }
-    }
-  }, [bookingIdParam, bookings]);
-  
-  // Populate form fields when a booking is selected for updating
-  useEffect(() => {
-    if (selectedBooking) {
-      setStatus(selectedBooking.status || "");
-      setNotes(selectedBooking.notes || "");
-    }
-  }, [selectedBooking]);
-  
-  // Update booking mutation
+
+  // Update booking status mutation
   const updateBookingMutation = useMutation({
-    mutationFn: async (data: { 
-      id: number; 
-      status: string; 
-      notes?: string;
-    }) => {
-      const { id, ...updateData } = data;
-      const response = await apiRequest("PATCH", `/api/bookings/${id}`, updateData);
-      return response.json();
+    mutationFn: async (data: { id: number; status: string; notes?: string }) => {
+      const res = await apiRequest("/api/bookings/" + data.id, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status: data.status,
+          notes: data.notes,
+        }),
+      });
+      return res;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      setShowUpdateDialog(false);
       toast({
         title: "Booking updated",
-        description: "The booking has been updated successfully.",
+        description: "The booking has been successfully updated.",
       });
+      setIsDetailsOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["staff-bookings"] });
     },
     onError: (error: Error) => {
       toast({
+        title: "Update failed",
+        description: error.message,
         variant: "destructive",
-        title: "Failed to update booking",
-        description: error.message || "Please try again later.",
       });
     },
   });
-  
-  // Create feedback mutation
-  const createFeedbackMutation = useMutation({
-    mutationFn: async (data: { 
-      bookingId: number; 
-      rating: number; 
-      comment?: string;
-    }) => {
-      const response = await apiRequest("POST", "/api/feedback", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/feedback"] });
-      setShowFeedbackForm(false);
-      toast({
-        title: "Feedback submitted",
-        description: "Thank you for submitting your feedback.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Failed to submit feedback",
-        description: error.message || "Please try again later.",
-      });
-    },
+
+  // Filter bookings
+  const filteredBookings = bookings.filter((booking: Booking) => {
+    // Search filter
+    const customerName = users.find((u: User) => u.id === booking.userId)?.username || "";
+    const searchMatches =
+      customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (booking.notes && booking.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    // Date filter
+    let dateMatches = true;
+    if (filterDate) {
+      const bookingDate = new Date(booking.date);
+      dateMatches =
+        bookingDate.getDate() === filterDate.getDate() &&
+        bookingDate.getMonth() === filterDate.getMonth() &&
+        bookingDate.getFullYear() === filterDate.getFullYear();
+    }
+
+    // Status filter
+    let statusMatches = true;
+    if (filterStatus !== "all") {
+      statusMatches = booking.status === filterStatus;
+    }
+
+    return searchMatches && dateMatches && statusMatches;
   });
-  
-  // Handle form submission
+
+  // Get user name by ID
+  const getUserName = (userId: number | null): string => {
+    if (!userId) return "Unknown";
+    const user = users.find((u: User) => u.id === userId);
+    return user ? user.username : "Unknown";
+  };
+
+  // Handle booking details
+  const viewBookingDetails = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setUpdateNotes(booking.notes || "");
+    setUpdateStatus(booking.status || "");
+    setIsDetailsOpen(true);
+  };
+
+  // Handle update booking
   const handleUpdateBooking = () => {
     if (!selectedBooking) return;
     
     updateBookingMutation.mutate({
       id: selectedBooking.id,
-      status,
-      notes,
+      status: updateStatus,
+      notes: updateNotes,
     });
   };
-  
-  // Handle feedback submission
-  const handleSubmitFeedback = () => {
-    if (!selectedBooking) return;
-    
-    createFeedbackMutation.mutate({
-      bookingId: selectedBooking.id,
-      rating: feedbackRating,
-      comment: feedbackComment,
-    });
-  };
-  
-  // Check if booking has feedback
-  const hasFeedback = (bookingId: number) => {
-    return feedbackItems?.some(item => item.bookingId === bookingId);
-  };
-  
-  // Get booking feedback
-  const getBookingFeedback = (bookingId: number) => {
-    return feedbackItems?.find(item => item.bookingId === bookingId);
-  };
-  
-  // Filter bookings based on status, date, and search term
-  const filteredBookings = staffBookings.filter(booking => {
-    // Filter by status
-    if (statusFilter && booking.status !== statusFilter) {
-      return false;
-    }
-    
-    // Filter by date
-    if (dateFilter) {
-      const bookingDate = format(new Date(booking.date), "yyyy-MM-dd");
-      if (bookingDate !== dateFilter) {
-        return false;
-      }
-    }
-    
-    return true;
-  });
-  
-  if (authLoading || (!user || (user.role !== "staff" && user.role !== "admin"))) {
-    return null; // Will redirect via the useEffect
-  }
 
   return (
     <>
       <Helmet>
-        <title>Manage Bookings | Staff | Cleopatra Eyewear Collection</title>
-        <meta name="robots" content="noindex, nofollow" />
+        <title>Staff Bookings | Cleopatra Eyewear</title>
       </Helmet>
       
-      <div className="flex">
-        {/* Staff Sidebar */}
-        <div className="hidden md:flex w-64 flex-col bg-sidebar fixed inset-y-0 z-50 pt-16">
-          <div className="flex flex-col flex-grow p-4 overflow-y-auto">
-            <div className="py-4 text-sidebar-foreground font-medium">
-              <span className="px-4 pb-2 block text-sm text-sidebar-foreground/60">Staff Portal</span>
-              <nav className="mt-2 space-y-1">
-                <a href="/staff/dashboard" className="px-4 py-2 rounded-md hover:bg-sidebar-accent/10 text-sidebar-foreground flex items-center">
-                  <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                  </svg>
-                  Dashboard
-                </a>
-                <a href="/staff/bookings" className="px-4 py-2 rounded-md bg-sidebar-accent/10 text-sidebar-primary flex items-center">
-                  <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  Bookings
-                </a>
-                <a href="/staff/feedback" className="px-4 py-2 rounded-md hover:bg-sidebar-accent/10 text-sidebar-foreground flex items-center">
-                  <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
-                  </svg>
-                  Feedback
-                </a>
-              </nav>
-            </div>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6 text-primary">Manage Your Bookings</h1>
+        
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by customer, location..."
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+          
+          <div className="flex items-center space-x-2">
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            <Calendar
+              mode="single"
+              selected={filterDate}
+              onSelect={setFilterDate}
+              className="border rounded-md p-2"
+            />
+            {filterDate && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setFilterDate(null)}
+                className="h-8 w-8"
+              >
+                <XCircle className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
-        {/* Main Content */}
-        <div className="flex-1 md:ml-64 pt-16">
-          <div className="px-6 py-8">
-            <h1 className="text-3xl font-bold mb-6 font-poppins">My Bookings</h1>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Assigned Bookings</CardTitle>
-                <CardDescription>
-                  Manage your assigned mobile caravan bookings.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Filters */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                  <div className="w-full sm:w-40">
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Statuses" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={undefined}>All Statuses</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="w-full sm:w-auto">
-                    <div className="flex items-center">
-                      <Input
-                        type="date"
-                        value={dateFilter}
-                        onChange={(e) => setDateFilter(e.target.value)}
-                        className="w-full"
-                      />
-                      {dateFilter && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-2"
-                          onClick={() => setDateFilter(undefined)}
-                        >
-                          <Icons.close className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Bookings table */}
-                {bookingsLoading ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-32 w-full" />
-                  </div>
-                ) : filteredBookings.length > 0 ? (
-                  <div className="rounded-md border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date & Time</TableHead>
-                          <TableHead>Location</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Feedback</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredBookings.map((booking) => (
-                          <TableRow key={booking.id}>
-                            <TableCell>
-                              <div className="font-medium">
-                                {format(new Date(booking.date), "MMM d, yyyy")}
-                              </div>
-                              <div className="text-sm text-neutral-500">
-                                {format(new Date(booking.date), "h:mm a")}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="max-w-xs truncate" title={booking.location}>
-                                {booking.location}
-                              </div>
-                            </TableCell>
-                            <TableCell>Customer #{booking.userId}</TableCell>
-                            <TableCell>
-                              <Badge className={statusColors[booking.status] || ""}>
-                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {hasFeedback(booking.id) ? (
-                                <div className="flex text-amber-400">
-                                  {[...Array(5)].map((_, i) => {
-                                    const feedback = getBookingFeedback(booking.id);
-                                    return (
-                                      <Icons.star 
-                                        key={i} 
-                                        className={`h-4 w-4 ${i >= (feedback?.rating || 0) ? 'text-neutral-300 dark:text-neutral-600' : ''}`} 
-                                      />
-                                    );
-                                  })}
-                                </div>
-                              ) : booking.status === "completed" ? (
-                                <span className="text-sm text-neutral-500">No feedback yet</span>
-                              ) : null}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedBooking(booking);
-                                  setShowViewDialog(true);
-                                }}
-                              >
-                                View
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="text-center py-10">
-                    <Icons.calendar className="h-10 w-10 text-neutral-400 mx-auto mb-3" />
-                    <p className="text-neutral-600 dark:text-neutral-400 mb-2">
-                      No bookings found
-                    </p>
-                    <p className="text-sm text-neutral-500">
-                      No bookings match your current filters.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-      
-      {/* View Booking Dialog */}
-      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Booking Details</DialogTitle>
-            <DialogDescription>
-              Booking #{selectedBooking?.id}
-            </DialogDescription>
-          </DialogHeader>
+        {/* Booking tabs */}
+        <Tabs defaultValue="upcoming" className="mb-6">
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsTrigger value="all">All Bookings</TabsTrigger>
+          </TabsList>
           
-          {selectedBooking && (
+          {["upcoming", "completed", "all"].map((tab) => (
+            <TabsContent key={tab} value={tab} className="mt-0">
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="loader w-8 h-8 rounded-full border-4 border-muted"></div>
+                </div>
+              ) : filteredBookings.length === 0 ? (
+                <div className="text-center py-12 bg-muted/20 rounded-lg">
+                  <UserCircle className="mx-auto h-12 w-12 text-muted" />
+                  <h3 className="mt-4 text-lg font-medium">No bookings found</h3>
+                  <p className="mt-2 text-muted-foreground">
+                    {searchQuery || filterDate || filterStatus !== "all"
+                      ? "Try adjusting your filters"
+                      : "You don't have any bookings yet"}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredBookings
+                    .filter((booking: Booking) => {
+                      if (tab === "all") return true;
+                      if (tab === "upcoming")
+                        return ["pending", "confirmed", "in-progress"].includes(booking.status || "");
+                      if (tab === "completed")
+                        return ["completed", "cancelled"].includes(booking.status || "");
+                      return true;
+                    })
+                    .map((booking: Booking) => (
+                      <Card key={booking.id} className="overflow-hidden">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg">
+                                {format(new Date(booking.date), "MMM d, yyyy")}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground">
+                                {getUserName(booking.userId)}
+                              </p>
+                            </div>
+                            <Badge className={`bg-${statusColors[booking.status || "pending"]}`}>
+                              {booking.status}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pb-3">
+                          <div className="flex items-start gap-3 mb-2">
+                            <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                            <span>{booking.location}</span>
+                          </div>
+                          <div className="flex items-start gap-3 mb-2">
+                            <Clock className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                            <span>{timeSlots[booking.attendees || 0]}</span>
+                          </div>
+                          {booking.notes && (
+                            <div className="mt-3 p-2 bg-accent rounded-md text-sm">
+                              {booking.notes.length > 100
+                                ? `${booking.notes.substring(0, 100)}...`
+                                : booking.notes}
+                            </div>
+                          )}
+                        </CardContent>
+                        <CardFooter>
+                          <Button
+                            onClick={() => viewBookingDetails(booking)}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            View Details
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                </div>
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+
+      {/* Booking Details Dialog */}
+      {selectedBooking && (
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Booking Details</DialogTitle>
+            </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex justify-between items-center">
                 <div>
-                  <Label className="text-xs text-neutral-500">Date</Label>
-                  <p className="font-medium">
+                  <h3 className="font-semibold">
                     {format(new Date(selectedBooking.date), "MMMM d, yyyy")}
-                  </p>
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{timeSlots[selectedBooking.attendees || 0]}</p>
                 </div>
-                <div>
-                  <Label className="text-xs text-neutral-500">Time</Label>
-                  <p className="font-medium">
-                    {format(new Date(selectedBooking.date), "h:mm a")}
-                  </p>
-                </div>
-              </div>
-              
-              <div>
-                <Label className="text-xs text-neutral-500">Location</Label>
-                <p className="font-medium">{selectedBooking.location}</p>
-              </div>
-              
-              <div>
-                <Label className="text-xs text-neutral-500">Customer</Label>
-                <p className="font-medium">Customer #{selectedBooking.userId}</p>
-              </div>
-              
-              <div>
-                <Label className="text-xs text-neutral-500">Number of Attendees</Label>
-                <p className="font-medium">{selectedBooking.attendees || 1}</p>
-              </div>
-              
-              <div>
-                <Label className="text-xs text-neutral-500">Status</Label>
-                <Badge className={`mt-1 ${statusColors[selectedBooking.status] || ""}`}>
-                  {selectedBooking.status.charAt(0).toUpperCase() + selectedBooking.status.slice(1)}
+                <Badge className={`bg-${statusColors[selectedBooking.status || "pending"]}`}>
+                  {selectedBooking.status}
                 </Badge>
               </div>
-              
-              {selectedBooking.notes && (
-                <div>
-                  <Label className="text-xs text-neutral-500">Notes</Label>
-                  <p className="text-sm mt-1">{selectedBooking.notes}</p>
-                </div>
-              )}
-              
-              {hasFeedback(selectedBooking.id) && (
-                <div>
-                  <Label className="text-xs text-neutral-500">Customer Feedback</Label>
-                  <div className="mt-1">
-                    <div className="flex text-amber-400 mb-1">
-                      {[...Array(5)].map((_, i) => {
-                        const feedback = getBookingFeedback(selectedBooking.id);
-                        return (
-                          <Icons.star 
-                            key={i} 
-                            className={`h-4 w-4 ${i >= (feedback?.rating || 0) ? 'text-neutral-300 dark:text-neutral-600' : ''}`} 
-                          />
-                        );
-                      })}
-                    </div>
-                    {getBookingFeedback(selectedBooking.id)?.comment && (
-                      <p className="text-sm italic">
-                        "{getBookingFeedback(selectedBooking.id)?.comment}"
-                      </p>
-                    )}
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      {getUserName(selectedBooking.userId).substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{getUserName(selectedBooking.userId)}</p>
+                    <p className="text-xs text-muted-foreground">Customer</p>
                   </div>
                 </div>
-              )}
+              </div>
+
+              <div className="border rounded-md p-3">
+                <p className="text-sm font-medium mb-1">Location</p>
+                <p className="text-sm">{selectedBooking.location}</p>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="status">Update Status</Label>
+                <Select value={updateStatus} onValueChange={setUpdateStatus}>
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Add notes about this booking"
+                  value={updateNotes}
+                  onChange={(e) => setUpdateNotes(e.target.value)}
+                  rows={4}
+                />
+              </div>
             </div>
-          )}
-          
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowViewDialog(false)}
-            >
-              Close
-            </Button>
-            
-            <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-              {selectedBooking && selectedBooking.status !== "cancelled" && selectedBooking.status !== "completed" && (
-                <Button
-                  variant="default"
-                  onClick={() => {
-                    setShowViewDialog(false);
-                    setShowUpdateDialog(true);
-                  }}
-                >
-                  Update Status
-                </Button>
-              )}
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Update Booking Dialog */}
-      <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Update Booking Status</DialogTitle>
-            <DialogDescription>
-              Update the status for booking #{selectedBooking?.id}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any notes about this booking"
-                className="min-h-[100px]"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowUpdateDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="default"
-              onClick={handleUpdateBooking}
-              disabled={updateBookingMutation.isPending}
-            >
-              {updateBookingMutation.isPending ? (
-                <>
-                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
-                </>
-              ) : "Update Booking"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="flex space-x-2 justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setIsDetailsOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleUpdateBooking}
+                disabled={updateBookingMutation.isPending}
+              >
+                {updateBookingMutation.isPending ? (
+                  <>
+                    <div className="loader mr-2 h-4 w-4 border-2"></div>
+                    Updating...
+                  </>
+                ) : (
+                  "Update Booking"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

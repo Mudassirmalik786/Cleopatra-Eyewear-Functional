@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { MobileMenu } from "@/components/layout/MobileMenu";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth-context";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
