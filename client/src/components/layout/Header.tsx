@@ -34,20 +34,20 @@ export function Header() {
 
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/">
-              <a className="font-medium text-primary border-b-2 border-primary pb-1">Home</a>
+            <Link href="/" className="font-medium text-primary border-b-2 border-primary pb-1">
+              Home
             </Link>
-            <Link href="/shop">
-              <a className="font-medium text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all">Shop</a>
+            <Link href="/shop" className="font-medium text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all">
+              Shop
             </Link>
-            <Link href="/book-caravan">
-              <a className="font-medium text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all">Book Caravan</a>
+            <Link href="/book-caravan" className="font-medium text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all">
+              Book Caravan
             </Link>
-            <Link href="/about">
-              <a className="font-medium text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all">About</a>
+            <Link href="/about" className="font-medium text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all">
+              About
             </Link>
-            <Link href="/contact">
-              <a className="font-medium text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all">Contact</a>
+            <Link href="/contact" className="font-medium text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all">
+              Contact
             </Link>
           </nav>
 
