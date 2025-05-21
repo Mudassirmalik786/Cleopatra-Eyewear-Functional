@@ -5,6 +5,8 @@ import {
   bookings, type Booking, type InsertBooking,
   feedback, type Feedback, type InsertFeedback
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc, isNull, asc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -45,6 +47,175 @@ export interface IStorage {
   getFeedback(id: number): Promise<Feedback | undefined>;
   getBookingFeedback(bookingId: number): Promise<Feedback | undefined>;
   getAllFeedback(): Promise<Feedback[]>;
+}
+
+/**
+ * DatabaseStorage implements the IStorage interface using a PostgreSQL database
+ * with Drizzle ORM for database operations
+ */
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(user).returning();
+    return result[0];
+  }
+
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const result = await db.update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+
+  // Category methods
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const result = await db.insert(categories).values(category).returning();
+    return result[0];
+  }
+
+  async getCategory(id: number): Promise<Category | undefined> {
+    const result = await db.select().from(categories).where(eq(categories.id, id));
+    return result[0];
+  }
+
+  async getAllCategories(): Promise<Category[]> {
+    return db.select().from(categories);
+  }
+
+  async updateCategory(id: number, categoryData: Partial<Category>): Promise<Category | undefined> {
+    const result = await db.update(categories)
+      .set(categoryData)
+      .where(eq(categories.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteCategory(id: number): Promise<boolean> {
+    const result = await db.delete(categories).where(eq(categories.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Product methods
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const result = await db.insert(products).values(product).returning();
+    return result[0];
+  }
+
+  async getProduct(id: number): Promise<Product | undefined> {
+    const result = await db.select().from(products).where(eq(products.id, id));
+    return result[0];
+  }
+
+  async getAllProducts(): Promise<Product[]> {
+    return db.select().from(products);
+  }
+
+  async getProductsByCategory(categoryId: number): Promise<Product[]> {
+    return db.select()
+      .from(products)
+      .where(eq(products.categoryId, categoryId));
+  }
+
+  async getFeaturedProducts(): Promise<Product[]> {
+    return db.select()
+      .from(products)
+      .where(eq(products.featured, true));
+  }
+
+  async updateProduct(id: number, productData: Partial<Product>): Promise<Product | undefined> {
+    const result = await db.update(products)
+      .set(productData)
+      .where(eq(products.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteProduct(id: number): Promise<boolean> {
+    const result = await db.delete(products).where(eq(products.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Booking methods
+  async createBooking(booking: InsertBooking): Promise<Booking> {
+    const result = await db.insert(bookings).values(booking).returning();
+    return result[0];
+  }
+
+  async getBooking(id: number): Promise<Booking | undefined> {
+    const result = await db.select().from(bookings).where(eq(bookings.id, id));
+    return result[0];
+  }
+
+  async getAllBookings(): Promise<Booking[]> {
+    return db.select().from(bookings).orderBy(desc(bookings.date));
+  }
+
+  async getUserBookings(userId: number): Promise<Booking[]> {
+    return db.select()
+      .from(bookings)
+      .where(eq(bookings.userId, userId))
+      .orderBy(desc(bookings.date));
+  }
+
+  async getStaffBookings(staffId: number): Promise<Booking[]> {
+    return db.select()
+      .from(bookings)
+      .where(eq(bookings.staffId, staffId))
+      .orderBy(desc(bookings.date));
+  }
+
+  async updateBooking(id: number, bookingData: Partial<Booking>): Promise<Booking | undefined> {
+    const result = await db.update(bookings)
+      .set(bookingData)
+      .where(eq(bookings.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteBooking(id: number): Promise<boolean> {
+    const result = await db.delete(bookings).where(eq(bookings.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Feedback methods
+  async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {
+    const result = await db.insert(feedback).values(feedbackData).returning();
+    return result[0];
+  }
+
+  async getFeedback(id: number): Promise<Feedback | undefined> {
+    const result = await db.select().from(feedback).where(eq(feedback.id, id));
+    return result[0];
+  }
+
+  async getBookingFeedback(bookingId: number): Promise<Feedback | undefined> {
+    const result = await db.select().from(feedback).where(eq(feedback.bookingId, bookingId));
+    return result[0];
+  }
+
+  async getAllFeedback(): Promise<Feedback[]> {
+    return db.select().from(feedback).orderBy(desc(feedback.createdAt));
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -376,4 +547,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use DatabaseStorage for persistent storage with PostgreSQL
+export const storage = new DatabaseStorage();
