@@ -75,6 +75,7 @@ export function BookingForm({ onSuccess }: BookingFormProps) {
       selectedDate.setHours(hours, minutes);
       
       const response = await apiRequest("POST", "/api/bookings", {
+        userId: user?.id,
         date: selectedDate.toISOString(),
         location: data.location,
         attendees: data.attendees,
