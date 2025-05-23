@@ -13,6 +13,8 @@ import Shop from "@/pages/Shop";
 import ProductDetail from "@/pages/ProductDetail";
 import BookCaravan from "@/pages/BookCaravan";
 import Profile from "@/pages/Profile";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
@@ -39,6 +41,8 @@ function Router() {
           <Route path="/products/:id" component={ProductDetail} />
           <Route path="/book-caravan" component={BookCaravan} />
           <Route path="/profile" component={Profile} />
+          <Route path="/about" component={About} />
+          <Route path="/contact" component={Contact} />
           
           {/* Admin Pages */}
           <Route path="/admin/dashboard" component={AdminDashboard} />

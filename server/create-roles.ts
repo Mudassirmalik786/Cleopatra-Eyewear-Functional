@@ -29,9 +29,9 @@ async function createRoleUsers() {
     });
     
     console.log("✅ Admin and staff users created successfully!");
-    console.log("📋 Login credentials:");
-    console.log("   Admin: admin@cleopatraeyewear.com / admin123");
-    console.log("   Staff: staff@cleopatraeyewear.com / admin123");
+    console.log("📋 Login credentials (use username, not email):");
+    console.log("   Admin: admin / admin123");
+    console.log("   Staff: staff / admin123");
     
   } catch (error) {
     console.error("❌ Error creating users:", error);
