@@ -25,7 +25,7 @@ interface LoginFormProps {
 }
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  email: z.string().min(1, { message: "Please enter username or email" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   rememberMe: z.boolean().optional(),
 });
@@ -89,11 +89,11 @@ export function LoginForm({ onSwitchToRegister, onSuccess }: LoginFormProps) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Username or Email</FormLabel>
                 <FormControl>
                   <Input 
-                    type="email" 
-                    placeholder="your@email.com" 
+                    type="text" 
+                    placeholder="username or email" 
                     {...field} 
                   />
                 </FormControl>
