@@ -95,8 +95,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const loginSchema = z.object({
-        email: z.string(),
-        password: z.string().min(6),
+        email: z.string().min(1),
+        password: z.string().min(1),
       });
       
       const credentials = loginSchema.parse(req.body);
