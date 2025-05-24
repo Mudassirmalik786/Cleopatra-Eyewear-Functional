@@ -189,11 +189,19 @@ export function LoginForm({ onSwitchToRegister, onSuccess }: LoginFormProps) {
         </div>
         
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <Button variant="outline" className="flex items-center justify-center">
+          <Button 
+            variant="outline" 
+            className="flex items-center justify-center"
+            onClick={() => window.location.href = '/api/auth/google'}
+          >
             <Icons.google className="h-5 w-5 mr-2 text-red-500" />
             <span>Google</span>
           </Button>
-          <Button variant="outline" className="flex items-center justify-center">
+          <Button 
+            variant="outline" 
+            className="flex items-center justify-center"
+            onClick={() => window.location.href = '/api/auth/facebook'}
+          >
             <Icons.facebook className="h-5 w-5 mr-2 text-blue-600" />
             <span>Facebook</span>
           </Button>

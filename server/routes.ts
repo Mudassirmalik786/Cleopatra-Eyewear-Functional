@@ -170,6 +170,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SOCIAL AUTH ROUTES
+  // Google OAuth routes
+  app.get('/api/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+
+  app.get('/api/auth/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req: any, res) => {
+      // Set session data for successful login
+      req.session.userId = req.user.id;
+      req.session.userRole = req.user.role;
+      res.redirect('/');
+    }
+  );
+
+  // Facebook OAuth routes
+  app.get('/api/auth/facebook',
+    passport.authenticate('facebook', { scope: ['email'] })
+  );
+
+  app.get('/api/auth/facebook/callback',
+    passport.authenticate('facebook', { failureRedirect: '/' }),
+    (req: any, res) => {
+      // Set session data for successful login
+      req.session.userId = req.user.id;
+      req.session.userRole = req.user.role;
+      res.redirect('/');
+    }
+  );
+
   // USER ROUTES
   app.get("/api/users", requireAdmin, async (req, res) => {
     try {
