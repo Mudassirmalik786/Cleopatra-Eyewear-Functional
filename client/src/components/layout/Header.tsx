@@ -64,12 +64,10 @@ export function Header() {
               <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
             ) : user ? (
               <div className="relative group">
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href="/profile">
-                    <Icons.user className="h-5 w-5 text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all" />
-                  </Link>
+                <Button variant="ghost" size="icon">
+                  <Icons.user className="h-5 w-5 text-neutral-600 dark:text-neutral-300 hover:text-primary transition-all cursor-pointer" />
                 </Button>
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-md shadow-lg py-1 hidden group-hover:block">
+                <div className="absolute right-0 top-full w-48 bg-white dark:bg-neutral-800 rounded-md shadow-lg py-1 hidden group-hover:block z-50 border border-neutral-200 dark:border-neutral-700">
                   <Link href="/profile" className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700">
                     Profile
                   </Link>
