@@ -228,12 +228,12 @@ export default function Contact() {
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
-                      <Icons.loader className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader className="w-4 h-4 mr-2 animate-spin" />
                       Sending...
                     </>
                   ) : (
                     <>
-                      <Icons.send className="w-4 h-4 mr-2" />
+                      <Send className="w-4 h-4 mr-2" />
                       Send Message
                     </>
                   )}
