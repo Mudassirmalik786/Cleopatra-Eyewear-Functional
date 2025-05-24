@@ -141,11 +141,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy((err) => {
+    // Clear passport session if exists
+    req.logout((err) => {
       if (err) {
-        return res.status(500).json({ message: "Failed to logout" });
+        console.error('Passport logout error:', err);
       }
-      res.json({ message: "Logged out successfully" });
+      // Destroy session completely
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ message: "Failed to logout" });
+        }
+        res.clearCookie('connect.sid'); // Clear session cookie
+        res.json({ message: "Logged out successfully" });
+      });
     });
   });
 
@@ -177,12 +185,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get('/api/auth/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/' }),
-    (req: any, res) => {
-      // Set session data for successful login
-      req.session.userId = req.user.id;
-      req.session.userRole = req.user.role;
-      res.redirect('/');
+    passport.authenticate('google', { failureRedirect: '/?error=auth_failed' }),
+    async (req: any, res) => {
+      try {
+        if (req.user) {
+          // Clear any existing session first
+          req.session.userId = undefined;
+          req.session.userRole = undefined;
+          
+          // Set new session data for successful login
+          req.session.userId = req.user.id;
+          req.session.userRole = req.user.role;
+          
+          // Save session before redirect
+          req.session.save((err: any) => {
+            if (err) {
+              console.error('Session save error:', err);
+              return res.redirect('/?error=session_error');
+            }
+            res.redirect('/?auth=success');
+          });
+        } else {
+          res.redirect('/?error=auth_failed');
+        }
+      } catch (error) {
+        console.error('Google callback error:', error);
+        res.redirect('/?error=auth_failed');
+      }
     }
   );
 
@@ -192,12 +221,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get('/api/auth/facebook/callback',
-    passport.authenticate('facebook', { failureRedirect: '/' }),
-    (req: any, res) => {
-      // Set session data for successful login
-      req.session.userId = req.user.id;
-      req.session.userRole = req.user.role;
-      res.redirect('/');
+    passport.authenticate('facebook', { failureRedirect: '/?error=auth_failed' }),
+    async (req: any, res) => {
+      try {
+        if (req.user) {
+          // Clear any existing session first
+          req.session.userId = undefined;
+          req.session.userRole = undefined;
+          
+          // Set new session data for successful login
+          req.session.userId = req.user.id;
+          req.session.userRole = req.user.role;
+          
+          // Save session before redirect
+          req.session.save((err: any) => {
+            if (err) {
+              console.error('Session save error:', err);
+              return res.redirect('/?error=session_error');
+            }
+            res.redirect('/?auth=success');
+          });
+        } else {
+          res.redirect('/?error=auth_failed');
+        }
+      } catch (error) {
+        console.error('Facebook callback error:', error);
+        res.redirect('/?error=auth_failed');
+      }
     }
   );
 
