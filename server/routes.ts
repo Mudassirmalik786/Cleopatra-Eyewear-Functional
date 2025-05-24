@@ -158,6 +158,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", async (req, res) => {
+    console.log('Auth check - Session data:', {
+      userId: req.session.userId,
+      userRole: req.session.userRole,
+      sessionId: req.sessionID
+    });
+    
     if (!req.session.userId) {
       return res.status(401).json(null);
     }
@@ -165,6 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = await storage.getUser(req.session.userId);
       if (!user) {
+        console.log('User not found in database, clearing session');
         req.session.destroy(() => {});
         return res.status(401).json(null);
       }
@@ -172,17 +179,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Remove password from response
       const { password, ...userWithoutPassword } = user;
       
+      console.log('Authenticated user:', userWithoutPassword.username, userWithoutPassword.role);
       res.json(userWithoutPassword);
     } catch (error) {
+      console.error('Auth check error:', error);
       res.status(500).json({ message: "Server error" });
     }
   });
 
-  // SOCIAL AUTH ROUTES
+  // SOCIAL AUTH ROUTES - Temporarily disabled for debugging
   // Google OAuth routes
-  app.get('/api/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
+  app.get('/api/auth/google', (req, res) => {
+    res.json({ 
+      message: "Google OAuth temporarily disabled for debugging",
+      callbackUrl: `${req.protocol}://${req.get('host')}/api/auth/google/callback`,
+      note: "Please configure this exact URL in Google Cloud Console"
+    });
+  });
 
   app.get('/api/auth/google/callback', 
     passport.authenticate('google', { failureRedirect: '/?error=auth_failed' }),
