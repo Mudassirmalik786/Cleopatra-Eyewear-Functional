@@ -11,6 +11,15 @@ import {
   insertFeedbackSchema
 } from "@shared/schema";
 import passport from "./passport-config";
+import Stripe from "stripe";
+
+// Initialize Stripe
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+});
 
 // Session augmentation to include user
 declare module 'express-session' {
@@ -263,6 +272,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   );
+
+  // STRIPE PAYMENT ROUTES
+  app.post("/api/create-payment-intent", requireAuth, async (req, res) => {
+    try {
+      const { amount, items } = req.body;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          userId: req.session.userId?.toString() || '',
+          items: JSON.stringify(items || [])
+        }
+      });
+
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
+      console.error('Payment intent creation error:', error);
+      res.status(500).json({ 
+        message: "Error creating payment intent: " + error.message 
+      });
+    }
+  });
 
   // USER ROUTES
   app.get("/api/users", requireAdmin, async (req, res) => {

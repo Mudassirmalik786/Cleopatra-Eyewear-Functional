@@ -15,6 +15,7 @@ import BookCaravan from "@/pages/BookCaravan";
 import Profile from "@/pages/Profile";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
+import Checkout from "@/pages/Checkout";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
