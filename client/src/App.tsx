@@ -44,6 +44,7 @@ function Router() {
           <Route path="/profile" component={Profile} />
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
+          <Route path="/checkout" component={Checkout} />
           
           {/* Admin Pages */}
           <Route path="/admin/dashboard" component={AdminDashboard} />

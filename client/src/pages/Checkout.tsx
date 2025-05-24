@@ -90,7 +90,7 @@ const CheckoutForm = ({ items, total }: { items: any[], total: number }) => {
       >
         {isProcessing ? (
           <div className="flex items-center">
-            <Icons.loader className="animate-spin mr-2 h-4 w-4" />
+            <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
             Processing Payment...
           </div>
         ) : (
