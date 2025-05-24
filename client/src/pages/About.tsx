@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet";
-import { Icons } from "@/components/ui/icons";
+import { Heart, Star, Truck, Eye } from "lucide-react";
 
 export default function About() {
   return (
@@ -38,7 +38,7 @@ export default function About() {
             </p>
           </div>
           <div className="bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-8">
-            <Icons.eyeglasses className="w-24 h-24 text-primary mx-auto mb-4" />
+            <Eye className="w-24 h-24 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-center text-primary">Premium Quality</h3>
             <p className="text-center text-neutral-600 dark:text-neutral-300 mt-2">
               Every frame is carefully selected for quality, style, and comfort
@@ -52,7 +52,7 @@ export default function About() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Icons.heart className="w-8 h-8 text-primary" />
+                <Heart className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Customer First</h3>
               <p className="text-neutral-600 dark:text-neutral-300">
@@ -61,7 +61,7 @@ export default function About() {
             </div>
             <div className="text-center">
               <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Icons.star className="w-8 h-8 text-primary" />
+                <Star className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Excellence</h3>
               <p className="text-neutral-600 dark:text-neutral-300">
@@ -70,7 +70,7 @@ export default function About() {
             </div>
             <div className="text-center">
               <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Icons.truck className="w-8 h-8 text-primary" />
+                <Truck className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Innovation</h3>
               <p className="text-neutral-600 dark:text-neutral-300">

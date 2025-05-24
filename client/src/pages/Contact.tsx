@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Icons } from "@/components/ui/icons";
+import { Phone, Mail, MapPin, Truck, Calendar, Eye, Loader, Send } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -82,7 +82,7 @@ export default function Contact() {
             <div className="space-y-6 mb-8">
               <div className="flex items-start space-x-4">
                 <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-3">
-                  <Icons.phone className="w-6 h-6 text-primary" />
+                  <Phone className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">Phone</h3>
@@ -93,7 +93,7 @@ export default function Contact() {
 
               <div className="flex items-start space-x-4">
                 <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-3">
-                  <Icons.mail className="w-6 h-6 text-primary" />
+                  <Mail className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">Email</h3>
@@ -104,7 +104,7 @@ export default function Contact() {
 
               <div className="flex items-start space-x-4">
                 <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-3">
-                  <Icons.mapPin className="w-6 h-6 text-primary" />
+                  <MapPin className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">Service Area</h3>
@@ -115,7 +115,7 @@ export default function Contact() {
 
               <div className="flex items-start space-x-4">
                 <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-3">
-                  <Icons.truck className="w-6 h-6 text-primary" />
+                  <Truck className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">Mobile Service</h3>
@@ -131,13 +131,13 @@ export default function Contact() {
               <div className="space-y-3">
                 <Button asChild className="w-full justify-start">
                   <a href="/book-caravan">
-                    <Icons.calendar className="w-4 h-4 mr-2" />
+                    <Calendar className="w-4 h-4 mr-2" />
                     Book Mobile Caravan
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="w-full justify-start">
                   <a href="/shop">
-                    <Icons.eyeglasses className="w-4 h-4 mr-2" />
+                    <Eye className="w-4 h-4 mr-2" />
                     Browse Eyewear
                   </a>
                 </Button>
