@@ -2,6 +2,7 @@ import express, { type Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { z } from "zod";
 import { 
@@ -106,7 +107,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.getUserByUsername(credentials.email);
       }
       
-      if (!user || user.password !== credentials.password) {
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // Check password - support both plain text (for existing users) and bcrypt (for admin/staff)
+      const isPasswordValid = user.password.startsWith('$2b$') 
+        ? await bcrypt.compare(credentials.password, user.password)
+        : user.password === credentials.password;
+        
+      if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
