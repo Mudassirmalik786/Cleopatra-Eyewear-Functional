@@ -10,6 +10,7 @@ import {
   insertCategorySchema, insertBookingSchema, 
   insertFeedbackSchema
 } from "@shared/schema";
+import passport from "./passport-config";
 
 // Session augmentation to include user
 declare module 'express-session' {
@@ -36,6 +37,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
     })
   );
+
+  // Initialize Passport middleware
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   // Auth Middleware
   const requireAuth = (req: Request, res: Response, next: () => void) => {
