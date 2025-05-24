@@ -51,11 +51,109 @@ export function MobileCaravan() {
           </div>
           
           <div className="w-full lg:w-1/2">
-            <img
-              src="https://images.unsplash.com/photo-1595870811392-1238aabcf945?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600"
-              alt="Eyewear mobile caravan"
-              className="rounded-lg shadow-lg w-full h-auto"
-            />
+            <div className="bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-lg shadow-lg p-8 w-full">
+              <svg
+                viewBox="0 0 400 300"
+                className="w-full h-auto"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Van body */}
+                <rect
+                  x="50"
+                  y="150"
+                  width="300"
+                  height="100"
+                  rx="10"
+                  fill="#8B5CF6"
+                  className="drop-shadow-lg"
+                />
+                
+                {/* Van front */}
+                <rect
+                  x="320"
+                  y="130"
+                  width="60"
+                  height="120"
+                  rx="10"
+                  fill="#7C3AED"
+                />
+                
+                {/* Windshield */}
+                <rect
+                  x="330"
+                  y="140"
+                  width="40"
+                  height="50"
+                  rx="5"
+                  fill="#E0E7FF"
+                  opacity="0.8"
+                />
+                
+                {/* Side window */}
+                <rect
+                  x="270"
+                  y="160"
+                  width="40"
+                  height="30"
+                  rx="3"
+                  fill="#E0E7FF"
+                  opacity="0.8"
+                />
+                
+                {/* Wheels */}
+                <circle cx="100" cy="270" r="25" fill="#374151" />
+                <circle cx="100" cy="270" r="15" fill="#6B7280" />
+                <circle cx="280" cy="270" r="25" fill="#374151" />
+                <circle cx="280" cy="270" r="15" fill="#6B7280" />
+                
+                {/* Door handle */}
+                <circle cx="240" cy="200" r="3" fill="#FCD34D" />
+                
+                {/* Van text/logo */}
+                <text
+                  x="160"
+                  y="200"
+                  fontSize="16"
+                  fill="white"
+                  textAnchor="middle"
+                  fontWeight="bold"
+                >
+                  CLEOPATRA
+                </text>
+                <text
+                  x="160"
+                  y="220"
+                  fontSize="12"
+                  fill="white"
+                  textAnchor="middle"
+                >
+                  EYEWEAR
+                </text>
+                
+                {/* Glasses icons on van */}
+                <g transform="translate(80, 170)">
+                  <ellipse cx="0" cy="0" rx="12" ry="8" fill="none" stroke="white" strokeWidth="2" />
+                  <ellipse cx="25" cy="0" rx="12" ry="8" fill="none" stroke="white" strokeWidth="2" />
+                  <line x1="12" y1="0" x2="13" y2="0" stroke="white" strokeWidth="2" />
+                </g>
+                
+                {/* Background elements */}
+                <circle cx="80" cy="80" r="30" fill="#FCD34D" opacity="0.3" />
+                <circle cx="320" cy="60" r="20" fill="#F97316" opacity="0.3" />
+                
+                {/* Mobile service text */}
+                <text
+                  x="200"
+                  y="40"
+                  fontSize="18"
+                  fill="#7C3AED"
+                  textAnchor="middle"
+                  fontWeight="bold"
+                >
+                  Mobile Eyewear Service
+                </text>
+              </svg>
+            </div>
           </div>
         </div>
       </div>
