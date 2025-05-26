@@ -1,6 +1,3 @@
-Hi Maather Saleh, here are some more basic functionalities per role for your system:
- 
- 
 For End-Users (Customers):
 1. User Registration and Login
 	•	Create a secure account with email and password.
